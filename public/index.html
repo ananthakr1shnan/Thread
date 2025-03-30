@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Operation Thread Optimizer</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Matrix Operation Thread Optimizer</h1>
+        <p class="lead">This tool predicts the optimal number of OpenMP threads for various matrix operations based on your input parameters.</p>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Operation Details</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="typeOp" class="form-label">Matrix Operation Type</label>
+                            <select class="form-select" id="typeOp">
+                                <option value="Multiplication">Multiplication</option>
+                                <option value="Addition">Addition</option>
+                                <option value="Transposition">Transposition</option>
+                                <option value="Determinant">Determinant</option>
+                                <option value="Inverse">Inverse</option>
+                                <option value="Eigenvalues">Eigenvalues</option>
+                                <option value="LU Decomposition">LU Decomposition</option>
+                                <option value="Cholesky Decomposition">Cholesky Decomposition</option>
+                                <option value="QR Decomposition">QR Decomposition</option>
+                                <option value="Singular Value Decomposition (SVD)">Singular Value Decomposition (SVD)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="matrixSize" class="form-label">Matrix Size (n×n): <span id="matrixSizeValue">256</span></label>
+                            <input type="range" class="form-range" id="matrixSize" min="10" max="1000" step="10" value="256">
+                        </div>
+                        <div class="mb-3">
+                            <label for="varType" class="form-label">Variable Type</label>
+                            <select class="form-select" id="varType">
+                                <option value="int">int</option>
+                                <option value="float" selected>float</option>
+                                <option value="double">double</option>
+                                <option value="complex">complex</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="matrixType" class="form-label">Matrix Type</label>
+                            <select class="form-select" id="matrixType">
+                                <option value="Dense" selected>Dense</option>
+                                <option value="Sparse">Sparse</option>
+                                <option value="Diagonal">Diagonal</option>
+                                <option value="Symmetric">Symmetric</option>
+                                <option value="Triangular">Triangular</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Advanced Options (Optional)</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="advancedToggle">
+                            <label class="form-check-label" for="advancedToggle">
+                                Specify advanced parameters manually
+                            </label>
+                        </div>
+                        
+                        <div id="advancedOptions" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">Is the operation iterative?</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="isIterative" id="notIterative" value="0" checked>
+                                    <label class="form-check-label" for="notIterative">No</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="isIterative" id="isIterative" value="1">
+                                    <label class="form-check-label" for="isIterative">Yes</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Memory usage pattern</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="memoryPattern" id="lowMemory" value="0" checked>
+                                    <label class="form-check-label" for="lowMemory">Low Memory Usage</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="memoryPattern" id="highMemory" value="1">
+                                    <label class="form-check-label" for="highMemory">High Memory Usage</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="predictBtn" class="btn btn-primary btn-lg w-100 mb-4">Predict Optimal Thread Count</button>
+                
+                <div id="resultsCard" class="card mb-4" style="display: none;">
+                    <div class="card-header">
+                        <h4>Prediction Results</h4>
+                    </div>
+                    <div class="card-body">
+                        <h2 class="text-center mb-4">Recommended Thread Count: <span id="threadCount" class="badge bg-success">4</span></h2>
+                        
+                        <button class="btn btn-outline-secondary w-100 mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#estimatedParams">
+                            View Estimated Parameters
+                        </button>
+                        
+                        <div class="collapse" id="estimatedParams">
+                            <div class="card card-body">
+                                <h5>Estimated Operation Parameters</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Execution Time:</span>
+                                            <span id="exeTime" class="fw-bold"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Operations:</span>
+                                            <span id="numOp" class="fw-bold"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Variables:</span>
+                                            <span id="numVar" class="fw-bold"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Complexity:</span>
+                                            <span id="complexity" class="fw-bold"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Iterative:</span>
+                                            <span id="isIterativeResult" class="fw-bold"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>High Memory:</span>
+                                            <span id="memoryPatternResult" class="fw-bold"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>About this Thread Optimizer</h4>
+            </div>
+            <div class="card-body">
+                <p>This tool uses a machine learning model (XGBoost) trained on 8,816 matrix operation benchmarks to predict 
+                the optimal number of threads for your specific task. It automatically estimates internal parameters based on 
+                the characteristics of your matrix operation.</p>
+                
+                <h5>Key Features:</h5>
+                <ul>
+                    <li><strong>80% prediction accuracy</strong> on benchmark datasets</li>
+                    <li>Supports 10 different matrix operations</li>
+                    <li>Works with matrices up to 1000×1000</li>
+                    <li>Handles different data types and matrix structures</li>
+                </ul>
+                
+                <h5>Estimated Parameters:</h5>
+                <ul>
+                    <li><strong>Execution Time</strong>: Estimated based on operation type, matrix size, and data type</li>
+                    <li><strong>Number of Operations</strong>: Calculated from the mathematical complexity of the operation</li>
+                    <li><strong>Memory Pattern</strong>: Determined by the operation's typical memory access patterns</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

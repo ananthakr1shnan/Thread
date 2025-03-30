@@ -1,0 +1,65 @@
+from flask import Flask, request, jsonify, send_from_directory
+import os
+import sys
+from api.thread_predictor import ThreadPredictor
+
+app = Flask(__name__, static_folder='public')
+
+# Initialize the predictor with the model path
+model_path = os.path.join(os.path.dirname(__file__), "api", "xgboost_thread_model.bst")
+predictor = ThreadPredictor(model_path=model_path)
+
+@app.route('/')
+def index():
+    return send_from_directory('public', 'index.html')
+
+@app.route('/<path:path>')
+def static_files(path):
+    return send_from_directory('public', path)
+
+@app.route('/api', methods=['GET'])
+def api_status():
+    return jsonify({
+        'status': 'Thread Predictor API is running. Use POST to make predictions.'
+    })
+
+@app.route('/api', methods=['POST'])
+def predict():
+    try:
+        # Parse JSON request
+        data = request.json
+        
+        # Extract parameters
+        type_op = data.get('type_op')
+        matrix_size = int(data.get('matrix_size'))
+        var_type = data.get('var_type')
+        matrix_type = data.get('matrix_type')
+        
+        # Optional parameters
+        is_iterative = data.get('is_iterative')
+        memory_pattern = data.get('memory_pattern')
+        
+        # Make prediction
+        optimal_threads, estimated_features = predictor.predict(
+            type_op=type_op,
+            matrix_size=matrix_size,
+            var_type=var_type,
+            matrix_type=matrix_type,
+            is_iterative=is_iterative,
+            memory_pattern=memory_pattern
+        )
+        
+        # Prepare response
+        response = {
+            'optimal_threads': int(optimal_threads),
+            'estimated_features': estimated_features
+        }
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
