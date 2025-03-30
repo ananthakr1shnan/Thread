@@ -6,7 +6,7 @@ from api.thread_predictor import ThreadPredictor
 app = Flask(__name__, static_folder='public')
 
 # Initialize the predictor with the model path
-model_path = os.path.join(os.path.dirname(__file__), "api", "thread_count_predictor.bst")
+model_path = os.path.join(os.path.dirname(__file__), "api", "final_pipeline.pkl")
 predictor = ThreadPredictor(model_path=model_path)
 
 @app.route('/')
@@ -40,9 +40,11 @@ def predict():
         var_type = data.get('var_type')
         matrix_type = data.get('matrix_type')
         
-        # Optional parameters
-        is_iterative = data.get('is_iterative')
-        memory_pattern = data.get('memory_pattern')
+        # Optional parameters - set proper defaults
+        is_iterative = data.get('is_iterative', False)
+        
+        # Use a numeric default for memory_pattern instead of "Unknown"
+        memory_pattern = data.get('memory_pattern', 0)  # Use 0 or another appropriate numeric default
         
         # Make prediction
         optimal_threads, estimated_features = predictor.predict(
