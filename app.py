@@ -6,7 +6,7 @@ from api.thread_predictor import ThreadPredictor
 app = Flask(__name__, static_folder='public')
 
 # Initialize the predictor with the model path
-model_path = os.path.join(os.path.dirname(__file__), "api", "xgboost_thread_model.bst")
+model_path = os.path.join(os.path.dirname(__file__), "api", "thread_count_predictor.bst")
 predictor = ThreadPredictor(model_path=model_path)
 
 @app.route('/')
