@@ -13,6 +13,11 @@ predictor = ThreadPredictor(model_path=model_path)
 def index():
     return send_from_directory('public', 'index.html')
 
+@app.route('/health')
+def health_check():
+    # Simple health check endpoint that Railway will use
+    return jsonify({"status": "healthy"}), 200
+
 @app.route('/<path:path>')
 def static_files(path):
     return send_from_directory('public', path)
@@ -58,8 +63,12 @@ def predict():
         return jsonify(response)
         
     except Exception as e:
+        # Print the error to logs
+        print(f"Error in prediction: {str(e)}", file=sys.stderr)
         return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
+    # Ensure we're binding to 0.0.0.0 and using the PORT env variable
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    print(f"Starting server on port {port}", file=sys.stderr)
+    app.run(host='0.0.0.0', port=port, debug=False)
