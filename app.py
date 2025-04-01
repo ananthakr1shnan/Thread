@@ -15,7 +15,6 @@ def index():
 
 @app.route('/health')
 def health_check():
-    # Simple health check endpoint that Railway will use
     return jsonify({"status": "healthy"}), 200
 
 @app.route('/<path:path>')
@@ -31,22 +30,17 @@ def api_status():
 @app.route('/api', methods=['POST'])
 def predict():
     try:
-        # Parse JSON request
         data = request.json
         
-        # Extract parameters
         type_op = data.get('type_op')
         matrix_size = int(data.get('matrix_size'))
         var_type = data.get('var_type')
         matrix_type = data.get('matrix_type')
         
-        # Optional parameters - set proper defaults
         is_iterative = data.get('is_iterative', False)
         
-        # Use a numeric default for memory_pattern instead of "Unknown"
-        memory_pattern = data.get('memory_pattern', 0)  # Use 0 or another appropriate numeric default
+        memory_pattern = data.get('memory_pattern', 0)  
         
-        # Make prediction
         optimal_threads, estimated_features = predictor.predict(
             type_op=type_op,
             matrix_size=matrix_size,
@@ -56,7 +50,6 @@ def predict():
             memory_pattern=memory_pattern
         )
         
-        # Prepare response
         response = {
             'optimal_threads': int(optimal_threads),
             'estimated_features': estimated_features
@@ -65,12 +58,11 @@ def predict():
         return jsonify(response)
         
     except Exception as e:
-        # Print the error to logs
+      
         print(f"Error in prediction: {str(e)}", file=sys.stderr)
         return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
-    # Ensure we're binding to 0.0.0.0 and using the PORT env variable
     port = int(os.environ.get('PORT', 5000))
     print(f"Starting server on port {port}", file=sys.stderr)
     app.run(host='0.0.0.0', port=port, debug=False)
