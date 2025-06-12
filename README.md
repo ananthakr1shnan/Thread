@@ -29,10 +29,7 @@ The **Matrix Operation Thread Optimizer** uses ML models trained on real executi
 
 2. **Model Training**  
    A variety of supervised learning models were tested to predict the optimal thread count, including:
-   Basic classifiers (Logistic Regression, Decision Trees, Random Forests)
-   Gradient Boosting models
-   XGBoost
-   Neural Networks
+   Basic classifiers (Logistic Regression, Decision Trees, Random Forests),Gradient Boosting models,XGBoost,Neural Networks
 
    After extensive experimentation, XGBoost consistently delivered the highest accuracy and fastest inference.
    As a result, XGBoost was selected as the final model for production use
