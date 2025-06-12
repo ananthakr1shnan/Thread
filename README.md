@@ -1,4 +1,4 @@
-# 🧮 Matrix Operation Thread Optimizer
+# Matrix Operation Thread Optimizer
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue)](https://thread-pt4k.onrender.com)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-green)](https://github.com/ananthakr1shnan/Thread)
